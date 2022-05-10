@@ -33,9 +33,9 @@ fastify.get('/discourse/signin/token', async (request, reply) => {
 
   const sso = Buffer.from(request.query.sso, 'base64').toString('utf8')
   const params = new URLSearchParams(sso)
-  const nonce2 = await request.redis.get(`discourse:signin:${params.get('nonce')}`)
+  const bool = await request.redis.exists(`discourse:signin:${params.get('nonce')}`)
 
-  if (params.get('nonce') != nonce2) {
+  if (bool !== true) {
     return reply.badRequest('Nonce mismatch.')
   }
 
