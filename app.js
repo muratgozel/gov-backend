@@ -26,14 +26,14 @@ fastify.get('/discourse/signin', async (request, reply) => {
   return { redirect: encodeURIComponent(redirectUrl) }
 })
 
-fastify.get('/discourse/signin/token/', async (request, reply) => {
+fastify.get('/discourse/signin/token', async (request, reply) => {
   if (!request.query.sig || !request.query.sso) {
     return reply.badRequest()
   }
 
   const sso = Buffer.from(request.query.sso, 'base64').toString('utf8')
   const params = new URLSearchParams(sso)
-  const nonce2 = await redis.get(`discourse:signin:${params.get('nonce')}`)
+  const nonce2 = await request.redis.get(`discourse:signin:${params.get('nonce')}`)
 
   if (params.get('nonce') != nonce2) {
     return reply.badRequest('Nonce mismatch.')
