@@ -6,7 +6,7 @@ const Redis = require('ioredis')
 const redis = new Redis(process.env.REDIS_CONN_STR)
 const fastify = require('fastify')({ logger: true })
 fastify.register(require('@fastify/sensible'))
-const {signinWithDiscord} = require('./nodes/signin')
+const {signinWithDiscourse} = require('./nodes/signin')
 const {sessionInfo} = require('./nodes/session')
 
 fastify.register(require('@fastify/cors'), (ins) => async (request, callback) => {
@@ -79,7 +79,7 @@ fastify.get('/discourse/signin/token', async (request, reply) => {
 
   const result = await request.pgpool.connect(async (connection) => {
     request.pgconn = connection
-    return await signinWithDiscord(userParams, request)
+    return await signinWithDiscourse(userParams, request)
   })
 
   return reply.redirect(process.env.FRONTEND_URL + '/?token=' + (result.token || ''))

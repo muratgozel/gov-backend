@@ -2,13 +2,13 @@ const {sql} = require('slonik')
 const { v4: uuidv4 } = require('uuid')
 const registerUser = require('./registerUser')
 
-module.exports = async function signinWithDiscord(userParams, request) {
+module.exports = async function signinWithDiscourse(userParams, request) {
   const {email} = userParams
   let user = {
     email: email
   }
   let method = {
-    name: 'discord'
+    name: 'discourse'
   }
 
   // register user if not exists
@@ -30,7 +30,7 @@ module.exports = async function signinWithDiscord(userParams, request) {
   }
 
   // create signin method if not exists
-  const methodExists = await request.pgpool.exists(sql`select id from signin_methods where user_id=${user.id} and name='discord'`)
+  const methodExists = await request.pgpool.exists(sql`select id from signin_methods where user_id=${user.id} and name='discourse'`)
   if (!methodExists) {
     method.uuid = uuidv4()
     method.additional_params = userParams
@@ -45,11 +45,11 @@ module.exports = async function signinWithDiscord(userParams, request) {
   }
   else {
     try {
-      const methodResult = await request.pgconn.one(sql`select * from signin_methods where user_id=${user.id} and name='discord'`)
+      const methodResult = await request.pgconn.one(sql`select * from signin_methods where user_id=${user.id} and name='discourse'`)
       method.id = methodResult.id
       method.uuid = methodResult.uuid
       method.additional_params = userParams
-      await request.pgconn.query(sql`update signin_methods set additional_params=${JSON.stringify(userParams)} where user_id=${user.id} and name='discord'`)
+      await request.pgconn.query(sql`update signin_methods set additional_params=${JSON.stringify(userParams)} where user_id=${user.id} and name='discourse'`)
     } catch (error) {
       return {
         error

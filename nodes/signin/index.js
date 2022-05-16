@@ -1,3 +1,3 @@
 module.exports = {
-  signinWithDiscord: require('./signinWithDiscord.js')
+  signinWithDiscourse: require('./signinWithDiscourse.js')
 }
