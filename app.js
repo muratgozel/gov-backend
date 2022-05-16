@@ -9,14 +9,15 @@ fastify.register(require('@fastify/sensible'))
 const {signinWithDiscord} = require('./nodes/signin')
 const {sessionInfo} = require('./nodes/session')
 
-fastify.register(require('@fastify/cors'), function (instance) {
-  return (request, callback) => {
-    const origin = request.headers.origin
-    const hostname = origin ? new URL(origin).hostname : null
-    // allow all origins
-    const corsopts = {origin: true}
-    return callback(null, corsopts)
+fastify.register(require('@fastify/cors'), (ins) => async (request, callback) => {
+  const origin = request.headers.origin
+  const hostname = origin ? new URL(origin).hostname : null
+  const corsopts = {
+    origin: true, // allow all origins
+    credentials: true,
+    allowedHeaders: ["Origin, X-Requested-With, Content-Type, Accept"]
   }
+  return callback(null, corsopts)
 })
 
 fastify.addHook('onRequest', async (request, reply) => {
