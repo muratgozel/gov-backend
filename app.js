@@ -15,7 +15,7 @@ fastify.register(require('@fastify/cors'), (ins) => async (request, callback) =>
   const corsopts = {
     origin: true, // allow all origins
     credentials: true,
-    allowedHeaders: ["Origin, X-Requested-With, Content-Type, Accept"]
+    allowedHeaders: ["Origin, Authorization, X-Requested-With, Content-Type, Accept"]
   }
   return callback(null, corsopts)
 })
