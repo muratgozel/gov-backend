@@ -19,10 +19,13 @@
   },
   "homepage": "https://github.com/muratgozel/testgov#readme",
   "dependencies": {
+    "@fastify/cors": "^7.0.0",
     "@fastify/sensible": "^4.1.0",
     "fastify": "^3.29.0",
     "ioredis": "^5.0.4",
-    "jose": "^4.8.1"
+    "jose": "^4.8.1",
+    "slonik": "^28.1.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "dotenv": "^16.0.0",

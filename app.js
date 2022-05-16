@@ -1,15 +1,41 @@
 const {randomBytes, createHmac} = require('crypto')
 const {URLSearchParams} = require('url')
-const Redis = require("ioredis")
+const {createPool} = require('slonik')
+const pgpool = createPool(process.env.PG_CONN_STR)
+const Redis = require('ioredis')
+const redis = new Redis(process.env.REDIS_CONN_STR)
 const fastify = require('fastify')({ logger: true })
 fastify.register(require('@fastify/sensible'))
+const {signinWithDiscord} = require('./nodes/signin')
+const {sessionInfo} = require('./nodes/session')
+
+fastify.register(require('@fastify/cors'), function (instance) {
+  return (request, callback) => {
+    const origin = request.headers.origin
+    const hostname = origin ? new URL(origin).hostname : null
+    // allow all origins
+    const corsopts = {origin: true}
+    return callback(null, corsopts)
+  }
+})
 
 fastify.addHook('onRequest', async (request, reply) => {
-  request.redis = new Redis(process.env.REDIS_CONN_STR)
+  request.redis = redis
+  request.pgpool = pgpool
 })
 
 fastify.get('/', async (request, reply) => {
-  return { hello: 'world' }
+  return {}
+})
+
+fastify.get('/session', async (request, reply) => {
+  const token = (request.headers['Authorization'] || '').replace('Bearer ', '')
+  const result = await request.pgpool.connect(async (connection) => {
+    request.pgconn = connection
+    return await sessionInfo(token, request)
+  })
+
+  return result
 })
 
 fastify.get('/discourse/signin', async (request, reply) => {
@@ -35,7 +61,7 @@ fastify.get('/discourse/signin/token', async (request, reply) => {
   const params = new URLSearchParams(sso)
   const bool = await request.redis.exists(`discourse:signin:${params.get('nonce')}`)
 
-  if (bool !== true) {
+  if (!bool) {
     return reply.badRequest('Nonce mismatch.')
   }
 
@@ -46,9 +72,16 @@ fastify.get('/discourse/signin/token', async (request, reply) => {
   }
 
   const userParams = {}
-  params.forEach((n, v) => {userParams[n] = v})
+  params.forEach((v, n) => {
+    if (n != 'nonce' && n != 'return_sso_url') userParams[n] = v
+  })
 
-  return {params: userParams}
+  const result = await request.pgpool.connect(async (connection) => {
+    request.pgconn = connection
+    return await signinWithDiscord(userParams, request)
+  })
+
+  return reply.redirect(process.env.FRONTEND_URL + '/?token=' + (result.token || ''))
 })
 
 const start = async () => {
@@ -61,3 +94,9 @@ const start = async () => {
 }
 
 start()
+
+/*
+{
+  "1":"external_id","true":"admin","false":"moderator","admin@testforum.gozel.com.tr":"email","trust_level_0,trust_level_1,admins,staff":"groups","e4e1789465974bd4e76caee41479b66c87a12ec3563447e1722d3b816e614d0ae7164895da8185a1b07e845d642fae1623bf6caec53a55d571c2b451dced1ec7":"nonce","https://gov-backend.onrender.com/discourse/signin/token":"return_sso_url","muratgozel":"username"
+}
+*/
