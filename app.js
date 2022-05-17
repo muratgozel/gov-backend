@@ -30,7 +30,8 @@ fastify.get('/', async (request, reply) => {
 })
 
 fastify.get('/session', async (request, reply) => {
-  const token = (request.headers['Authorization'] || '').replace('Bearer ', '')
+  const token = (request.headers.authorization || '').replace('Bearer ', '')
+  console.log({token: token})
   const result = await request.pgpool.connect(async (connection) => {
     request.pgconn = connection
     return await sessionInfo(token, request)

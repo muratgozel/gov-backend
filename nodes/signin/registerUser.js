@@ -15,9 +15,10 @@ module.exports = async function registerUser(user, request) {
   try {
     const result = await request.pgconn.query(query)
     return {
-      id: result.id, uuid
+      id: result.rows[0].id, uuid
     }  
   } catch (error) {
+    console.log(error)
     return {
       error
     }

@@ -35,8 +35,8 @@ module.exports = async function signinWithDiscourse(userParams, request) {
     method.uuid = uuidv4()
     method.additional_params = userParams
     try {
-      const insertedMethod = await request.pgconn.query(sql`insert into signin_methods (uuid, name, user_id, additional_params) values (${method.uuid}, ${user.id}, ${JSON.stringify(method.additional_params)}) returning id`)
-      method.id = insertedMethod.id
+      const insertedMethod = await request.pgconn.query(sql`insert into signin_methods (uuid, name, user_id, additional_params) values (${method.uuid}, ${method.name}, ${user.id}, ${JSON.stringify(method.additional_params)}) returning id`)
+      method.id = insertedMethod.rows[0].id
     } catch (error) {
       return {
         error
