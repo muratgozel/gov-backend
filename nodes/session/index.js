@@ -5,6 +5,9 @@ async function sessionInfo(token, request) {
     method: {},
     user: {}
   }
+  if (!token) {
+    return initialValue
+  }
   const exists = await request.pgpool.exists(sql`select id from sessions where token=${token}`)
 
   if (!exists) {
